@@ -1,0 +1,118 @@
+' Module: DataImport
+Option Explicit
+
+Public Sub RefreshAllData()
+    ' Main procedure to refresh all data
+    Application.ScreenUpdating = False
+    
+    Call ImportYahooFinancials("MSFT") ' Acquirer
+    Call ImportYahooFinancials("ATVI") ' Target
+    Call CalculateMetrics
+    Call UpdateDashboard
+    
+    Application.ScreenUpdating = True
+    MsgBox "Data refresh complete!", vbInformation
+End Sub
+
+Private Sub ImportYahooFinancials(ticker As String)
+    ' Import financial data from Yahoo Finance
+    Dim ws As Worksheet
+    Dim url As String
+    Dim lastRow As Long
+    
+    ' Set up the worksheet
+    Set ws = ThisWorkbook.Sheets(ticker & "_Financials")
+    ws.Cells.Clear
+    
+    ' Create URL for Yahoo Finance API
+    url = "https://query1.finance.yahoo.com/v10/finance/quoteSummary/" & _
+          ticker & "?modules=financialData,balanceSheetHistory,incomeStatementHistory"
+    
+    ' Add headers
+    ws.Range("A1").Value = "Date"
+    ws.Range("B1").Value = "Revenue"
+    ws.Range("C1").Value = "EBITDA"
+    ws.Range("D1").Value = "Net Income"
+    
+    ' Your API call and data processing code here
+    ' Note: Actual implementation would require setting up proper API connections
+End Sub
+
+Private Sub CalculateMetrics()
+    ' Calculate key financial metrics
+    Dim ws As Worksheet
+    Set ws = ThisWorkbook.Sheets("Analysis")
+    
+    ' Calculate Enterprise Value
+    ws.Range("B2").Formula = "=Market_Cap + Total_Debt - Cash"
+    
+    ' Calculate key ratios
+    ws.Range("B3").Formula = "=EBITDA/Revenue" ' EBITDA Margin
+    ws.Range("B4").Formula = "=Net_Income/Revenue" ' Net Margin
+    ws.Range("B5").Formula = "=EV/EBITDA" ' EV/EBITDA Multiple
+End Sub
+
+' Module: DealAnalysis
+Public Sub AnalyzeDeal()
+    ' Perform deal analysis calculations
+    Dim wsOutput As Worksheet
+    Set wsOutput = ThisWorkbook.Sheets("Deal_Impact")
+    
+    ' Calculate deal metrics
+    CalculateAccretionDilution
+    CalculateSynergies
+    PerformSensitivityAnalysis
+End Sub
+
+Private Sub CalculateAccretionDilution()
+    ' Calculate EPS accretion/dilution
+    Dim wsOutput As Worksheet
+    Set wsOutput = ThisWorkbook.Sheets("Deal_Impact")
+    
+    ' Pro forma calculations
+    wsOutput.Range("B2").Formula = "=Combined_Net_Income/New_Shares_Outstanding"
+    wsOutput.Range("B3").Formula = "=(Pro_Forma_EPS-Standalone_EPS)/Standalone_EPS"
+End Sub
+
+Private Sub CalculateSynergies()
+    ' Calculate potential synergies
+    Dim wsSynergies As Worksheet
+    Set wsSynergies = ThisWorkbook.Sheets("Synergies")
+    
+    ' Revenue synergies
+    wsSynergies.Range("B2").Formula = "=Revenue_Growth * Synergy_Percentage"
+    
+    ' Cost synergies
+    wsSynergies.Range("B3").Formula = "=Operating_Costs * Cost_Reduction_Percentage"
+End Sub
+
+' Module: Reporting
+Public Sub GenerateReport()
+    ' Generate summary report
+    Dim wsReport As Worksheet
+    Set wsReport = ThisWorkbook.Sheets("Summary")
+    
+    ' Clear existing content
+    wsReport.Range("A1:Z100").Clear
+    
+    ' Add headers
+    wsReport.Range("A1").Value = "M&A Impact Analysis Summary"
+    wsReport.Range("A3").Value = "Deal Metrics"
+    
+    ' Add key metrics
+    PopulateKeyMetrics
+    FormatReport
+End Sub
+
+Private Sub PopulateKeyMetrics()
+    ' Add key deal metrics to report
+    Dim wsReport As Worksheet
+    Set wsReport = ThisWorkbook.Sheets("Summary")
+    
+    With wsReport
+        .Range("A5").Value = "Deal Value ($B)"
+        .Range("A6").Value = "Premium Paid (%)"
+        .Range("A7").Value = "EPS Impact (%)"
+        .Range("A8").Value = "Expected Synergies ($M)"
+    End With
+End Sub
